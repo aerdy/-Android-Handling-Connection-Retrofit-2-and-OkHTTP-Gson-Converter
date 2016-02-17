@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.okhttp.Response;
@@ -42,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
+        final TextView txtdata = (TextView) findViewById(R.id.data);
 
         RestClient.ApiInterface service = RestClient.getClient(getApplicationContext());
         Call<ResponseBody> call = service.getData("anna");
@@ -50,27 +51,41 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(retrofit.Response<ResponseBody> response, Retrofit retrofit) {
                 try {
-                    if(response.isSuccess()){
-                        Log.e("response",response.body().string());
-                        String data = response.body().string();
+                    if (response.isSuccess()) {
+                        String code = String.valueOf(response.code());
+                        if (response.code() == 200) {
+                            String body = response.body().string();
+                            String message = response.message();
+                            String hader = String.valueOf(response.headers());
 
-                        JSONObject jsonObject = new JSONObject(data);
-                        JSONArray jsonArray = jsonObject.getJSONArray("items");
-                        for(int a = 0;a<jsonArray.length();a++){
-                            JSONObject jsonObject1 = jsonArray.getJSONObject(a);
-                            String login = jsonObject1.getString("login");
+                            txtdata.setText(
+                                    "Code : " + code + "\n\n" +
+                                            "Message : " + message + "\n\n" +
+                                            "Header : " + hader+"\n\n"+
+                                            "Body : " + body + "\n\n");
+
+                            JSONObject jsonObject = new JSONObject(body);
+                            JSONArray jsonArray = jsonObject.getJSONArray("items");
+                            for (int a = 0; a < jsonArray.length(); a++) {
+                                JSONObject jsonObject1 = jsonArray.getJSONObject(a);
+                                String login = jsonObject1.getString("login");
+                            }
+                        } else {
+                            Log.e("response erro body", "" + response.errorBody());
+
                         }
 
+
                     }
-                }catch (Exception e){
-                    Log.e("response error",e.getMessage());
+                } catch (Exception e) {
+                    Log.e("response error", e.getMessage());
 
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
-                Log.e("response failure",t.getMessage());
+                Log.e("response failure", t.getMessage());
 
             }
         });
@@ -144,7 +159,8 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-    private Map buildDefaultParams(){
+
+    private Map buildDefaultParams() {
         Map defaults = new HashMap();
         defaults.put("param1", "isiparam1");
         defaults.put("param2", "isiparam2");
